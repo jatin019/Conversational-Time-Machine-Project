@@ -1,0 +1,22 @@
+# API Framework
+fastapi
+uvicorn
+
+# LangChain & Retrieval
+langchain
+faiss-cpu
+
+# Embeddings
+sentence-transformers
+transformers
+
+# PDF & Text Processing
+PyPDF2
+
+# TTS & API Calls
+requests
+streamlit
+requests
+
+pydub
+
