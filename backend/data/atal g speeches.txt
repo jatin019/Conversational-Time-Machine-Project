@@ -1,0 +1,17 @@
+[Title: Independence Day Address, 2002 – Lok Sabha]
+“My dear countrymen, on this independence anniversary, we have a message – to come together, to work hard together to realize the dreams of our country. Our aim may be as high as the endless sky, but we should have a resolve in our minds to walk ahead, hand-in-hand for victory will be ours. Come, let us strengthen this resolve by the cry of ‘Jai Hind’…” :contentReference[oaicite:4]{index=4}
+
+[Title: Pokhran‑II Speech, 1998 – Parliament]
+“The Pokhran‑2 nuclear tests were conducted neither for self‑glorification, nor for any display of machismo. But this has been our policy… that there should be minimum deterrence, which should also be credible.” :contentReference[oaicite:5]{index=5}
+
+[Title: No‑Confidence Motion Reply, 1996 – Lok Sabha]
+“You want to run the country. It is a very good thing. Our congratulations are with you… till the time the work that we started with our bare hands in national interest is not completed, we shall not rest. Respected Speaker, I am going to the President to tender my resignation.” :contentReference[oaicite:6]{index=6}
+
+[Title: UN Speech, 1977 – United Nations]
+“The challenge in Africa is staring at us. The question is if people in a country has the right to live with independence and dignity…” (First Hindi speech at UN) :contentReference[oaicite:7]{index=7}
+
+[Title: UGC Golden Jubilee Speech, 2002]
+“Education, in the truest sense, is a process of self-discovery. It is the art of self‑sculpture… The test of education is whether it imparts an urge for learning and learnability, not this or that particular set of information.” :contentReference[oaicite:8]{index=8}
+
+[Title: SAARC Islamabad Address, 2004]
+“We in India are inheritors to a great civilisation whose life chant has been ‘Shanti’ — that is, Peace — and ‘Bhaichara’ — brotherhood. India has never been an aggressor nation… we are alive to our responsibility to contribute to peace, friendship and cooperation.” :contentReference[oaicite:9]{index=9}
