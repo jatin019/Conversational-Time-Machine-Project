@@ -1,8 +1,9 @@
 import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 import PyPDF2
+
 
 # Paths
 pdf_path = "data/Indira_Gandhi.pdf"
