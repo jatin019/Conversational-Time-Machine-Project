@@ -4,6 +4,8 @@ uvicorn
 
 # LangChain & Retrieval
 langchain
+langchain-community
+
 faiss-cpu
 
 # Embeddings
@@ -16,7 +18,8 @@ PyPDF2
 # TTS & API Calls
 requests
 streamlit
-requests
+
 
 pydub
-
+pydantic
+python-dotenv
