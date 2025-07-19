@@ -5,6 +5,7 @@ uvicorn
 # LangChain & Retrieval
 langchain
 langchain-community
+groq
 
 faiss-cpu
 
