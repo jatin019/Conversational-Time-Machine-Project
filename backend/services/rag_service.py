@@ -1,5 +1,5 @@
-from backend.utils.vector_store import load_vector_store
-from backend.utils.prompt_templates import get_persona_prompt
+from utils.vector_store import load_vector_store
+from utils.prompt_templates import get_persona_prompt
 from groq import Groq
 import os
 
