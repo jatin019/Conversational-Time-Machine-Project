@@ -4,6 +4,8 @@ uvicorn
 
 # LangChain & Retrieval
 langchain
+langchain-community
+
 faiss-cpu
 
 # Embeddings
@@ -19,4 +21,5 @@ streamlit
 requests
 
 pydub
-
+pydantic
+python-dotenv
