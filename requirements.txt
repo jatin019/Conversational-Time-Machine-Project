@@ -19,4 +19,5 @@ streamlit
 requests
 
 pydub
-
+pydantic
+python-dotenv
