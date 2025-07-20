@@ -3,20 +3,19 @@ from utils.prompt_templates import get_persona_prompt
 from groq import Groq
 import os
 
-# Initialized the Groq 
+# Initialize Groq
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def get_persona_response(persona: str, question: str) -> str:
-
-    # To load the FAISS index for the selected persona
-    retriever = load_vector_store(persona).as_retriever(search_kwargs={"k": 3})
+    # Load FAISS retriever
+    retriever = load_vector_store(persona).as_retriever(search_kwargs={"k": 2})
     docs = retriever.get_relevant_documents(question)
-    context = "\n".join([doc.page_content for doc in docs])
 
+    # Shorten each doc to 300 words max
+    context = "\n".join([" ".join(doc.page_content.split()[:300]) for doc in docs])
 
     system_prompt = get_persona_prompt(persona)
 
-    # final prompt
     final_prompt = f"""
 {system_prompt}
 
@@ -34,10 +33,8 @@ Rules:
 "I'm afraid I cannot speak of the future I haven’t seen."
 """
 
-
-    # Used Groq LLaMA 3.3 model
     response = client.chat.completions.create(
-        model="llama3-70b-8192",  
+        model="llama3-70b-8192",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": final_prompt}
@@ -47,4 +44,3 @@ Rules:
     )
 
     return response.choices[0].message.content
-
