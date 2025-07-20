@@ -22,7 +22,7 @@ indira_img = get_base64_image("assets/indira gandhi.jpg")
 atal_img = get_base64_image("assets/atal bihari vajpayee.jpeg")
 
 # API configuration - Railway backend URL
-API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-d013b.up.railway.app")
+API_BASE_URL = "https://web-production-d013b.up.railway.app"
 API_URL = f"{API_BASE_URL}/api/chat/"
 
 # Persona data
