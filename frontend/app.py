@@ -1,10 +1,12 @@
-import gradio as gr
+import streamlit as st
 import requests
 import json
 import base64
 import os
-from typing import Optional, Tuple, List
+from typing import Optional
 
+
+st.set_page_config(page_title="Conversational Time Machine", page_icon="🎙️", layout="wide")
 
 # Function to get base64 image
 def get_base64_image(path: str) -> Optional[str]:
@@ -15,7 +17,7 @@ def get_base64_image(path: str) -> Optional[str]:
     except FileNotFoundError:
         return None
 
-# Load images
+# To load the images and convert to Base64
 indira_img = get_base64_image("assets/indira gandhi.jpg")
 atal_img = get_base64_image("assets/atal bihari vajpayee.jpeg")
 
@@ -27,336 +29,397 @@ PERSONAS = {
     "indira": {
         "name": "Indira Gandhi",
         "desc": "First female Prime Minister of India (1966–1984). Known for decisive leadership and her role in shaping modern India.",
-        "image": "assets/indira gandhi.jpg" if os.path.exists("assets/indira gandhi.jpg") else None,
+        "image": indira_img,
         "placeholder": "e.g., What was your role in the Bangladesh Liberation War?"
     },
     "atal": {
         "name": "Atal Bihari Vajpayee", 
         "desc": "Former Prime Minister (1998–2004), statesman, poet, and visionary leader known for his oratory skills.",
-        "image": "assets/atal bihari vajpayee.jpeg" if os.path.exists("assets/atal bihari vajpayee.jpeg") else None,
+        "image": atal_img,
         "placeholder": "e.g., What inspired your poetry and political philosophy?"
     }
 }
 
-# Global conversation history
-conversation_history = []
+# Initialize session state
+if 'selected_persona' not in st.session_state:
+    st.session_state.selected_persona = ""
+if 'conversation_history' not in st.session_state:
+    st.session_state.conversation_history = []
 
-def get_persona_info(persona_key: str) -> str:
-    """Get persona information as HTML"""
-    if not persona_key or persona_key == "Select a leader...":
-        return "<div style='text-align: center; color: #888; font-style: italic; padding: 20px;'>Please select a historical figure to begin your conversation.</div>"
+# Custom CSS for styling
+st.markdown("""
+<style>
+    .stApp {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        color: #ffffff;
+    }
     
-    persona = PERSONAS.get(persona_key)
-    if not persona:
-        return "<div style='color: #f44336;'>Persona not found</div>"
+    .main-title {
+        font-size: 3rem;
+        font-weight: 700;
+        text-align: center;
+        background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+    }
     
-    image_html = ""
-    if persona["image"] and os.path.exists(persona["image"]):
-        image_html = f'<img src="file/{persona["image"]}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #4ecdc4;" />'
+    .subtitle {
+        font-size: 1.2rem;
+        color: #b0b0b0;
+        text-align: center;
+        margin-bottom: 50px;
+        font-weight: 300;
+    }
     
-    return f"""
-    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1);">
-        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-            {image_html}
-            <div>
-                <h3 style="color: #ffffff; margin: 0 0 5px 0; font-size: 1.4rem;">{persona["name"]}</h3>
-                <p style="color: #b0b0b0; margin: 0; line-height: 1.6;">{persona["desc"]}</p>
+    .persona-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        margin-bottom: 30px;
+    }
+    
+    .persona-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .persona-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .persona-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 5px;
+    }
+    
+    .persona-desc {
+        color: #b0b0b0;
+        line-height: 1.6;
+    }
+    
+    .response-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        margin: 20px 0;
+    }
+    
+    .response-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4ecdc4;
+        margin-bottom: 15px;
+    }
+    
+    .response-text {
+        color: #e0e0e0;
+        line-height: 1.8;
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+    
+    .stSelectbox > div > div > div {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+    }
+    
+    .stTextArea > div > div > textarea {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+    
+    .stButton > button {
+        background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 50px !important;
+        font-weight: 600 !important;
+        padding: 12px 40px !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4) !important;
+    }
+    
+    .stAudio > div {
+        background: transparent !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Header
+st.markdown('<h1 class="main-title">🎙️ Conversational Time Machine</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Chat with historical leaders and hear their voice in real-time!</p>', unsafe_allow_html=True)
+
+
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    st.markdown("### Choose a historical figure:")
+    persona_options = [""] + list(PERSONAS.keys())
+    persona_names = ["Select a leader..."] + [PERSONAS[key]["name"] for key in PERSONAS.keys()]
+    
+    selected_index = st.selectbox(
+        "Historical Figure",
+        range(len(persona_options)),
+        format_func=lambda x: persona_names[x],
+        label_visibility="collapsed"
+    )
+    
+    if selected_index > 0:
+        st.session_state.selected_persona = persona_options[selected_index]
+    else:
+        st.session_state.selected_persona = ""
+
+with col2:
+    if st.session_state.selected_persona:
+        persona_data = PERSONAS[st.session_state.selected_persona]
+        
+        # Created the persona card
+        persona_card_html = f"""
+        <div class="persona-card">
+            <div class="persona-header">
+                <div class="persona-image">
+                    {"<img src='" + persona_data["image"] + "' style='width: 100%; height: 100%; object-fit: cover; border-radius: 50%;' />" if persona_data["image"] else ""}
+                </div>
+                <div>
+                    <div class="persona-name">{persona_data["name"]}</div>
+                </div>
+            </div>
+            <div class="persona-desc">{persona_data["desc"]}</div>
+        </div>
+        """
+        st.markdown(persona_card_html, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="persona-card">
+            <div style="text-align: center; color: #888; font-style: italic;">
+                Please select a historical figure to begin your conversation.
             </div>
         </div>
-    </div>
-    """
+        """, unsafe_allow_html=True)
 
-def update_placeholder(persona_key: str) -> str:
-    """Update placeholder text based on selected persona"""
-    if not persona_key or persona_key == "Select a leader...":
-        return "Please select a historical figure first..."
-    
-    persona = PERSONAS.get(persona_key)
-    return persona["placeholder"] if persona else "Enter your question..."
+# Section to ask question
 
-def chat_with_persona(persona_key: str, question: str, history: List) -> Tuple[List, str, str]:
-    """Chat with selected persona and return updated history, audio, and status"""
-    global conversation_history
+st.markdown("### Ask your question:")
+
+if st.session_state.selected_persona:
+    persona_data = PERSONAS[st.session_state.selected_persona]
+    question = st.text_area(
+        "Your question",
+        placeholder=persona_data["placeholder"],
+        height=120,
+        label_visibility="collapsed"
+    )
     
-    if not persona_key or persona_key == "Select a leader...":
-        return history, None, "❌ Please select a historical figure first."
-    
-    if not question.strip():
-        return history, None, "❌ Please enter a question."
-    
-    persona = PERSONAS.get(persona_key)
-    if not persona:
-        return history, None, "❌ Invalid persona selected."
-    
-    try:
-        # Show loading status
-        status = f"🎙️ Generating response and voice for {persona['name']}... This may take 1-2 minutes for high-quality audio generation."
-        
-        # API call
-        payload = {
-            "persona": persona_key,
-            "question": question.strip()
-        }
-        
-        response = requests.post(
-            API_URL,
-            json=payload,
-            timeout=120,
-            headers={'Content-Type': 'application/json'}
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Create conversation entry
-            conversation_entry = {
-                "persona": persona_key,
-                "persona_name": persona["name"],
-                "question": question.strip(),
-                "answer": data.get('answer', 'No response received'),
-                "audio": data.get('audio', None)
-            }
-            
-            # Add to global history
-            conversation_history.append(conversation_entry)
-            
-            # Update chat history for display
-            new_history = history + [[f"🙋 **You asked {persona['name']}:** {question}", f"🎭 **{persona['name']} responds:**\n\n{data.get('answer', 'No response received')}"]]
-            
-            # Handle audio
-            audio_path = None
-            if data.get('audio'):
-                audio_file_path = data.get('audio')
-                
-                # Convert backend path to accessible path
-                if audio_file_path.startswith("static/"):
-                    # For TTS generated files
-                    if os.path.exists(audio_file_path):
-                        audio_path = audio_file_path
+    # Ask button
+    if st.button("Ask Now", disabled=not question.strip()):
+        if question.strip():
+            # Show loading spinner
+            with st.spinner(f"🎙️ Generating response and voice for {persona_data['name']}... This may take 1-2 minutes for high-quality audio generation."):
+                try:
+                    # API call
+                    payload = {
+                        "persona": st.session_state.selected_persona,
+                        "question": question.strip()
+                    }
+                    
+                    response = requests.post(
+                        API_URL,
+                        json=payload,
+                        timeout=120,  
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        # Debug: Show what we received
+                        st.success("✅ Response received successfully!")
+                        
+                        # Debug info 
+                        with st.expander("🔍 Debug Info (Click to expand)"):
+                            st.write("**API Response:**")
+                            st.json(data)
+                            if data.get('audio'):
+                                st.write(f"**Audio Path from Backend:** `{data.get('audio')}`")
+                                audio_path = data.get('audio')
+                                if audio_path.startswith("static/"):
+                                    st.write(f"**Expected File Location:** `{audio_path}`")
+                                    st.write(f"**File Exists:** `{os.path.exists(audio_path)}`")
+                                    if os.path.exists(audio_path):
+                                        file_size = os.path.getsize(audio_path)
+                                        st.write(f"**File Size:** `{file_size} bytes`")
+                        
+                        # Stored in conversation history
+                        conversation_entry = {
+                            "persona": st.session_state.selected_persona,
+                            "question": question.strip(),
+                            "answer": data.get('answer', 'No response received'),
+                            "audio": data.get('audio', None)
+                        }
+                        st.session_state.conversation_history.append(conversation_entry)
+                        
+                        # To show the latest response
+                        st.markdown("### 🎯 Latest Response:")
+                        latest_response_html = f"""
+                        <div class="response-card">
+                            <div class="response-title">{persona_data["name"]} responds:</div>
+                            <div style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">
+                                <strong>Your Question:</strong> {question.strip()}
+                            </div>
+                            <div class="response-text">{data.get('answer', 'No response received')}</div>
+                        </div>
+                        """
+                        st.markdown(latest_response_html, unsafe_allow_html=True)
+                        
+                        # To show the audio immediately if available
+                        if data.get('audio'):
+                            audio_path = data.get('audio')
+                            
+                            # Handle TTS service audio path: static/{persona}_response.mp3
+                            if audio_path.startswith("static/"):
+                                audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                            elif not audio_path.startswith("http"):
+                                if audio_path.startswith("/"):
+                                    audio_url = f"http://127.0.0.1:8000{audio_path}"
+                                else:
+                                    audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                            else:
+                                audio_url = audio_path
+                            
+                            st.write(f"🎵 **Audio Response from {persona_data['name']}:**")
+                            
+                            # Try multiple methods to play audio
+                            try:
+                                st.audio(audio_url, format='audio/mp3')
+                                st.markdown(f"[⬇️ Download Audio]({audio_url})")
+                            except Exception as audio_error:
+                                st.warning(f"Primary audio method failed, trying alternative...")
+                                # Alternative method: read file directly if it's local
+                                if audio_path.startswith("static/") and os.path.exists(audio_path):
+                                    try:
+                                        with open(audio_path, 'rb') as audio_file:
+                                            audio_bytes = audio_file.read()
+                                            st.audio(audio_bytes, format='audio/mp3')
+                                            st.success("✅ Audio loaded successfully!")
+                                    except Exception as local_error:
+                                        st.error(f"Could not load audio file: {local_error}")
+                                else:
+                                    st.error(f"Audio file not found at: {audio_path}")
+                        else:
+                            st.info("ℹ️ No audio was generated for this response.")
+                        
                     else:
-                        # Try alternative paths
-                        alt_path = audio_file_path.replace("static/", "")
-                        if os.path.exists(alt_path):
-                            audio_path = alt_path
+                        st.error(f"❌ Server Error: {response.status_code}")
+                        st.error(f"Response: {response.text}")
+                        
+                except requests.exceptions.Timeout:
+                    st.error("Request timed out after 2 minutes. The AI voice generation might be taking longer than expected. Please try again.")
+                except requests.exceptions.ConnectionError:
+                    st.error("Unable to connect to the server. Please check if the backend is running.")
+                except Exception as e:
+                    st.error(f"Unexpected error occurred: {str(e)}")
+else:
+    st.text_area(
+        "Your question",
+        placeholder="Please select a historical figure first...",
+        height=120,
+        disabled=True,
+        label_visibility="collapsed"
+    )
+
+# Display conversation history
+if st.session_state.conversation_history:
+    st.markdown("---")
+    st.markdown("### Recent Conversations:")
+    
+    # Show most recent conversation first
+    for i, entry in enumerate(reversed(st.session_state.conversation_history[-3:])):  # Show last 3 conversations
+        persona_data = PERSONAS[entry["persona"]]
+        
+        response_card_html = f"""
+        <div class="response-card">
+            <div class="response-title">{persona_data["name"]} responds:</div>
+            <div style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">
+                <strong>Question:</strong> {entry["question"]}
+            </div>
+            <div class="response-text">{entry["answer"]}</div>
+        </div>
+        """
+        st.markdown(response_card_html, unsafe_allow_html=True)
+        
+        # Audio player - Handle TTS generated audio files
+        if entry["audio"]:
+            try:
+                audio_path = entry["audio"]
                 
-            return new_history, audio_path, f"✅ Response received successfully from {persona['name']}!"
-            
+                # Handle the TTS service audio path format: static/{persona}_response.mp3
+                if audio_path.startswith("static/"):
+                    # Convert to proper URL for backend static files
+                    audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                elif not audio_path.startswith("http"):
+                
+                    if audio_path.startswith("/"):
+                        audio_url = f"http://127.0.0.1:8000{audio_path}"
+                    else:
+                        audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                else:
+                    
+                    audio_url = audio_path
+                
+                st.write(f"🎵 **Audio Response from {persona_data['name']}:**")
+                
+                # Try to load and display audio
+                try:
+                    st.audio(audio_url, format='audio/mp3')
+                    st.markdown(f"[⬇️ Download Audio]({audio_url})")
+                except Exception as audio_error:
+                    st.warning(f"Could not load audio player. Trying alternative method...")
+                    
+                    if audio_path.startswith("static/") and os.path.exists(audio_path):
+                        with open(audio_path, 'rb') as audio_file:
+                            audio_bytes = audio_file.read()
+                            st.audio(audio_bytes, format='audio/mp3')
+                    else:
+                        st.error(f"Audio file not accessible: {audio_url}")
+                
+            except Exception as e:
+                st.warning(f"Audio playback error. Path: {entry.get('audio', 'None')} | Error: {str(e)}")
         else:
-            return history, None, f"❌ Server Error: {response.status_code} - {response.text}"
-            
-    except requests.exceptions.Timeout:
-        return history, None, "❌ Request timed out after 2 minutes. Please try again."
-    except requests.exceptions.ConnectionError:
-        return history, None, "❌ Unable to connect to the server. Please check if the backend is running."
-    except Exception as e:
-        return history, None, f"❌ Unexpected error: {str(e)}"
+            st.info("ℹ️ No audio generated for this response.")
 
-def clear_history():
-    """Clear conversation history"""
-    global conversation_history
-    conversation_history = []
-    return [], None, "🧹 Conversation history cleared!"
+# Clear conversation button
+if st.session_state.conversation_history:
+    if st.button("Clear Conversation History"):
+        st.session_state.conversation_history = []
+        st.rerun()
 
-# Custom CSS for dark theme
-custom_css = """
-/* Dark theme styling */
-.gradio-container {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%) !important;
-    color: #ffffff !important;
-}
-
-.gr-button-primary {
-    background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%) !important;
-    border: none !important;
-    border-radius: 25px !important;
-    font-weight: 600 !important;
-    transition: all 0.3s ease !important;
-}
-
-.gr-button-primary:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4) !important;
-}
-
-.gr-textbox, .gr-dropdown {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-}
-
-.gr-chatbot {
-    background-color: rgba(255, 255, 255, 0.02) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 15px !important;
-}
-
-/* Custom styling for chat messages */
-.gr-chatbot .message {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-radius: 15px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
-}
-
-.gr-audio {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-radius: 15px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-"""
-
-# Create Gradio interface
-with gr.Blocks(
-    title="🎙️ Conversational Time Machine",
-    theme=gr.themes.Base().set(
-        background_fill_primary="#0a0a0a",
-        background_fill_secondary="#1a1a2e",
-        block_background_fill="#16213e",
-        input_background_fill="rgba(255, 255, 255, 0.05)",
-        button_primary_background_fill="linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)"
-    ),
-    css=custom_css
-) as app:
-    
-    # Header
-    gr.HTML("""
-    <div style="text-align: center; padding: 30px 0;">
-        <h1 style="font-size: 3rem; font-weight: 700; background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%); 
-                   -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">
-            🎙️ Conversational Time Machine
-        </h1>
-        <p style="font-size: 1.2rem; color: #b0b0b0; font-weight: 300;">
-            Chat with historical leaders and hear their voice in real-time!
-        </p>
-    </div>
-    """)
-    
-    with gr.Row():
-        with gr.Column(scale=1):
-            # Persona selection
-            gr.HTML("<h3 style='color: #ffffff; margin-bottom: 15px;'>Choose a historical figure:</h3>")
-            persona_dropdown = gr.Dropdown(
-                choices=["Select a leader..."] + [PERSONAS[key]["name"] for key in PERSONAS.keys()],
-                value="Select a leader...",
-                label="Historical Figure",
-                interactive=True
-            )
-            
-            # Convert dropdown selection to persona key
-            def get_persona_key(selection):
-                if selection == "Select a leader...":
-                    return "Select a leader..."
-                for key, data in PERSONAS.items():
-                    if data["name"] == selection:
-                        return key
-                return "Select a leader..."
-        
-        with gr.Column(scale=2):
-            # Persona info display
-            persona_info = gr.HTML(
-                value=get_persona_info(""),
-                label="Selected Leader Info"
-            )
-    
-    # Question input section
-    gr.HTML("<h3 style='color: #ffffff; margin: 30px 0 15px 0;'>Ask your question:</h3>")
-    
-    with gr.Row():
-        with gr.Column(scale=4):
-            question_input = gr.Textbox(
-                placeholder="Please select a historical figure first...",
-                lines=3,
-                label="Your Question",
-                interactive=True
-            )
-        with gr.Column(scale=1):
-            ask_button = gr.Button(
-                "Ask Now",
-                variant="primary",
-                size="lg"
-            )
-    
-    # Status display
-    status_display = gr.HTML(
-        value="<div style='color: #888; font-style: italic;'>Select a leader and ask a question to begin.</div>",
-        label="Status"
-    )
-    
-    # Chat history
-    chatbot = gr.Chatbot(
-        value=[],
-        height=400,
-        label="Conversation History",
-        show_label=True,
-        container=True,
-        scale=1
-    )
-    
-    # Audio output
-    audio_output = gr.Audio(
-        label="🎵 Audio Response",
-        visible=True,
-        interactive=False
-    )
-    
-    # Clear button
-    with gr.Row():
-        clear_button = gr.Button(
-            "Clear Conversation History",
-            variant="secondary"
-        )
-    
-    # Debug info (collapsible)
-    with gr.Accordion("🔍 Debug Info", open=False):
-        debug_info = gr.JSON(
-            value={},
-            label="API Response Data"
-        )
-    
-    # Event handlers
-    def update_ui_on_persona_change(selection):
-        persona_key = get_persona_key(selection)
-        persona_html = get_persona_info(persona_key)
-        placeholder = update_placeholder(persona_key)
-        return persona_html, gr.update(placeholder=placeholder)
-    
-    def handle_chat(persona_selection, question, history):
-        persona_key = get_persona_key(persona_selection)
-        new_history, audio_path, status = chat_with_persona(persona_key, question, history)
-        
-        # Clear the question input
-        return new_history, audio_path, status, ""
-    
-    # Wire up events
-    persona_dropdown.change(
-        fn=update_ui_on_persona_change,
-        inputs=[persona_dropdown],
-        outputs=[persona_info, question_input]
-    )
-    
-    ask_button.click(
-        fn=handle_chat,
-        inputs=[persona_dropdown, question_input, chatbot],
-        outputs=[chatbot, audio_output, status_display, question_input]
-    )
-    
-    question_input.submit(
-        fn=handle_chat,
-        inputs=[persona_dropdown, question_input, chatbot],
-        outputs=[chatbot, audio_output, status_display, question_input]
-    )
-    
-    clear_button.click(
-        fn=clear_history,
-        outputs=[chatbot, audio_output, status_display]
-    )
-
-# Launch the app
-if __name__ == "__main__":
-    app.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        share=False,
-        debug=True,
-        show_error=True
-    )
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #666; padding: 20px;">
+    <p>🎙️ Conversational Time Machine - Bringing history to life through AI</p>
+    <p>Press Ctrl+R to refresh if you encounter any issues</p>
+</div>
+""", unsafe_allow_html=True)
