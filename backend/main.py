@@ -14,7 +14,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://conversational-time-machine-project-1.onrender.com"],
+    allow_origins=["https://your-streamlit-app.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
