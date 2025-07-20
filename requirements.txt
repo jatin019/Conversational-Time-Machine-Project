@@ -1,0 +1,26 @@
+# API Framework
+fastapi
+uvicorn
+groq
+gradio
+# LangChain & Retrieval
+langchain
+langchain-community
+
+faiss-cpu
+
+# Embeddings
+sentence-transformers
+transformers
+
+# PDF & Text Processing
+PyPDF2
+
+# TTS & API Calls
+requests
+streamlit
+
+
+pydub
+pydantic
+python-dotenv
