@@ -2,15 +2,17 @@
 fastapi
 uvicorn
 groq
+
 # LangChain & Retrieval
 langchain
 langchain-community
-
 faiss-cpu
 
-# Embeddings
-sentence-transformers
-transformers
+# Embeddings (force CPU-only Torch support)
+transformers==4.38.2
+sentence-transformers==2.5.1
+torch==2.2.2+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 
 # PDF & Text Processing
 PyPDF2
@@ -18,7 +20,6 @@ PyPDF2
 # TTS & API Calls
 requests
 streamlit
-
 
 pydub
 pydantic
