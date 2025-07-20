@@ -22,7 +22,7 @@ indira_img = get_base64_image("assets/indira gandhi.jpg")
 atal_img = get_base64_image("assets/atal bihari vajpayee.jpeg")
 
 # API configuration
-API_URL = os.getenv("API_URL", "https://conversational-time-machine-project.onrender.com/api/chat/")
+API_URL = "http://127.0.0.1:8000/api/chat/"
 
 
 # Persona data
