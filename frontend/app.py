@@ -5,7 +5,6 @@ import base64
 import os
 from typing import Optional
 
-
 st.set_page_config(page_title="Conversational Time Machine", page_icon="🎙️", layout="wide")
 
 # Function to get base64 image
@@ -21,8 +20,9 @@ def get_base64_image(path: str) -> Optional[str]:
 indira_img = get_base64_image("assets/indira gandhi.jpg")
 atal_img = get_base64_image("assets/atal bihari vajpayee.jpeg")
 
-# API configuration
-API_URL = "http://127.0.0.1:8000/api/chat/"
+# API configuration - Use Railway URL or fallback to localhost
+API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-d013b.up.railway.app")
+API_URL = f"{API_BASE_URL}/api/chat/"
 
 # Persona data
 PERSONAS = {
@@ -171,6 +171,8 @@ st.markdown("""
 st.markdown('<h1 class="main-title">🎙️ Conversational Time Machine</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Chat with historical leaders and hear their voice in real-time!</p>', unsafe_allow_html=True)
 
+# Display current API URL for debugging
+st.sidebar.markdown(f"**API URL:** {API_URL}")
 
 col1, col2 = st.columns([1, 2])
 
@@ -220,7 +222,6 @@ with col2:
         """, unsafe_allow_html=True)
 
 # Section to ask question
-
 st.markdown("### Ask your question:")
 
 if st.session_state.selected_persona:
@@ -266,10 +267,6 @@ if st.session_state.selected_persona:
                                 audio_path = data.get('audio')
                                 if audio_path.startswith("static/"):
                                     st.write(f"**Expected File Location:** `{audio_path}`")
-                                    st.write(f"**File Exists:** `{os.path.exists(audio_path)}`")
-                                    if os.path.exists(audio_path):
-                                        file_size = os.path.getsize(audio_path)
-                                        st.write(f"**File Size:** `{file_size} bytes`")
                         
                         # Stored in conversation history
                         conversation_entry = {
@@ -297,36 +294,25 @@ if st.session_state.selected_persona:
                         if data.get('audio'):
                             audio_path = data.get('audio')
                             
-                            # Handle TTS service audio path: static/{persona}_response.mp3
+                            # Handle audio path for Railway deployment
                             if audio_path.startswith("static/"):
-                                audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                                audio_url = f"{API_BASE_URL}/{audio_path}"
                             elif not audio_path.startswith("http"):
                                 if audio_path.startswith("/"):
-                                    audio_url = f"http://127.0.0.1:8000{audio_path}"
+                                    audio_url = f"{API_BASE_URL}{audio_path}"
                                 else:
-                                    audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                                    audio_url = f"{API_BASE_URL}/{audio_path}"
                             else:
                                 audio_url = audio_path
                             
                             st.write(f"🎵 **Audio Response from {persona_data['name']}:**")
                             
-                            # Try multiple methods to play audio
                             try:
                                 st.audio(audio_url, format='audio/mp3')
                                 st.markdown(f"[⬇️ Download Audio]({audio_url})")
                             except Exception as audio_error:
-                                st.warning(f"Primary audio method failed, trying alternative...")
-                                # Alternative method: read file directly if it's local
-                                if audio_path.startswith("static/") and os.path.exists(audio_path):
-                                    try:
-                                        with open(audio_path, 'rb') as audio_file:
-                                            audio_bytes = audio_file.read()
-                                            st.audio(audio_bytes, format='audio/mp3')
-                                            st.success("✅ Audio loaded successfully!")
-                                    except Exception as local_error:
-                                        st.error(f"Could not load audio file: {local_error}")
-                                else:
-                                    st.error(f"Audio file not found at: {audio_path}")
+                                st.error(f"Could not load audio: {audio_error}")
+                                st.error(f"Audio URL: {audio_url}")
                         else:
                             st.info("ℹ️ No audio was generated for this response.")
                         
@@ -349,13 +335,12 @@ else:
         label_visibility="collapsed"
     )
 
-# Display conversation history
+# Display conversation history (rest of the code remains the same as it handles dynamic URLs properly)
 if st.session_state.conversation_history:
     st.markdown("---")
     st.markdown("### Recent Conversations:")
     
-    # Show most recent conversation first
-    for i, entry in enumerate(reversed(st.session_state.conversation_history[-3:])):  # Show last 3 conversations
+    for i, entry in enumerate(reversed(st.session_state.conversation_history[-3:])):
         persona_data = PERSONAS[entry["persona"]]
         
         response_card_html = f"""
@@ -369,45 +354,20 @@ if st.session_state.conversation_history:
         """
         st.markdown(response_card_html, unsafe_allow_html=True)
         
-        # Audio player - Handle TTS generated audio files
         if entry["audio"]:
             try:
                 audio_path = entry["audio"]
-                
-                # Handle the TTS service audio path format: static/{persona}_response.mp3
                 if audio_path.startswith("static/"):
-                    # Convert to proper URL for backend static files
-                    audio_url = f"http://127.0.0.1:8000/{audio_path}"
-                elif not audio_path.startswith("http"):
-                
-                    if audio_path.startswith("/"):
-                        audio_url = f"http://127.0.0.1:8000{audio_path}"
-                    else:
-                        audio_url = f"http://127.0.0.1:8000/{audio_path}"
+                    audio_url = f"{API_BASE_URL}/{audio_path}"
                 else:
-                    
                     audio_url = audio_path
                 
                 st.write(f"🎵 **Audio Response from {persona_data['name']}:**")
-                
-                # Try to load and display audio
-                try:
-                    st.audio(audio_url, format='audio/mp3')
-                    st.markdown(f"[⬇️ Download Audio]({audio_url})")
-                except Exception as audio_error:
-                    st.warning(f"Could not load audio player. Trying alternative method...")
-                    
-                    if audio_path.startswith("static/") and os.path.exists(audio_path):
-                        with open(audio_path, 'rb') as audio_file:
-                            audio_bytes = audio_file.read()
-                            st.audio(audio_bytes, format='audio/mp3')
-                    else:
-                        st.error(f"Audio file not accessible: {audio_url}")
+                st.audio(audio_url, format='audio/mp3')
+                st.markdown(f"[⬇️ Download Audio]({audio_url})")
                 
             except Exception as e:
-                st.warning(f"Audio playback error. Path: {entry.get('audio', 'None')} | Error: {str(e)}")
-        else:
-            st.info("ℹ️ No audio generated for this response.")
+                st.warning(f"Audio playback error: {str(e)}")
 
 # Clear conversation button
 if st.session_state.conversation_history:
