@@ -14,13 +14,14 @@ def get_base64_image(path: str) -> Optional[str]:
         with open(path, "rb") as img_file:
             return f"data:image/jpeg;base64,{base64.b64encode(img_file.read()).decode()}"
     except FileNotFoundError:
+        st.warning(f"Image not found: {path}")
         return None
 
-# To load the images and convert to Base64
+# To load the images and convert to Base64 (make these optional)
 indira_img = get_base64_image("assets/indira gandhi.jpg")
 atal_img = get_base64_image("assets/atal bihari vajpayee.jpeg")
 
-# API configuration - Use Railway URL or fallback to localhost
+# API configuration - Railway backend URL
 API_BASE_URL = os.getenv("API_BASE_URL", "https://web-production-d013b.up.railway.app")
 API_URL = f"{API_BASE_URL}/api/chat/"
 
@@ -46,7 +47,7 @@ if 'selected_persona' not in st.session_state:
 if 'conversation_history' not in st.session_state:
     st.session_state.conversation_history = []
 
-# Custom CSS for styling
+# Custom CSS for styling (same as before)
 st.markdown("""
 <style>
     .stApp {
@@ -173,6 +174,17 @@ st.markdown('<p class="subtitle">Chat with historical leaders and hear their voi
 
 # Display current API URL for debugging
 st.sidebar.markdown(f"**API URL:** {API_URL}")
+st.sidebar.markdown(f"**Environment:** Railway")
+
+# Test API connection
+try:
+    health_response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+    if health_response.status_code == 200:
+        st.sidebar.success("✅ Backend Connected")
+    else:
+        st.sidebar.error("❌ Backend Connection Failed")
+except Exception as e:
+    st.sidebar.error(f"❌ Backend Error: {str(e)[:50]}...")
 
 col1, col2 = st.columns([1, 2])
 
@@ -202,7 +214,7 @@ with col2:
         <div class="persona-card">
             <div class="persona-header">
                 <div class="persona-image">
-                    {"<img src='" + persona_data["image"] + "' style='width: 100%; height: 100%; object-fit: cover; border-radius: 50%;' />" if persona_data["image"] else ""}
+                    {"<img src='" + persona_data["image"] + "' style='width: 100%; height: 100%; object-fit: cover; border-radius: 50%;' />" if persona_data["image"] else "<div style='width: 80px; height: 80px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center;'>👤</div>"}
                 </div>
                 <div>
                     <div class="persona-name">{persona_data["name"]}</div>
@@ -321,11 +333,11 @@ if st.session_state.selected_persona:
                         st.error(f"Response: {response.text}")
                         
                 except requests.exceptions.Timeout:
-                    st.error("Request timed out after 2 minutes. The AI voice generation might be taking longer than expected. Please try again.")
+                    st.error("⏰ Request timed out after 2 minutes. The AI voice generation might be taking longer than expected. Please try again.")
                 except requests.exceptions.ConnectionError:
-                    st.error("Unable to connect to the server. Please check if the backend is running.")
+                    st.error("🔌 Unable to connect to the server. Please check if the backend is running.")
                 except Exception as e:
-                    st.error(f"Unexpected error occurred: {str(e)}")
+                    st.error(f"💥 Unexpected error occurred: {str(e)}")
 else:
     st.text_area(
         "Your question",
@@ -335,7 +347,7 @@ else:
         label_visibility="collapsed"
     )
 
-# Display conversation history (rest of the code remains the same as it handles dynamic URLs properly)
+# Display conversation history
 if st.session_state.conversation_history:
     st.markdown("---")
     st.markdown("### Recent Conversations:")
@@ -377,9 +389,10 @@ if st.session_state.conversation_history:
 
 # Footer
 st.markdown("---")
-st.markdown("""
+st.markdown(f"""
 <div style="text-align: center; color: #666; padding: 20px;">
     <p>🎙️ Conversational Time Machine - Bringing history to life through AI</p>
+    <p>Backend: {API_BASE_URL}</p>
     <p>Press Ctrl+R to refresh if you encounter any issues</p>
 </div>
 """, unsafe_allow_html=True)
