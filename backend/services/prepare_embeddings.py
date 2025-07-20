@@ -6,15 +6,15 @@ import PyPDF2
 
 
 # Paths
-pdf_path = "data/Indira_Gandhi.pdf"
-speeches_path = "data/speeches.txt"
-quotes_path = "data/quotes.txt"
-output_path = "data/faiss_indira"
+# pdf_path = "data/Indira_Gandhi.pdf"
+# speeches_path = "data/speeches.txt"
+# quotes_path = "data/quotes.txt"
+# output_path = "data/faiss_indira"
 
-# pdf_path = "data/Atal_Bihari_Vajpayee.pdf"
-# speeches_path = "data/atal g speeches.txt"
-# quotes_path = "data/atal g quotes.txt"
-# output_path = "data/faiss_atal" 
+pdf_path = "data/Atal_Bihari_Vajpayee.pdf"
+speeches_path = "data/atal g speeches.txt"
+quotes_path = "data/atal g quotes.txt"
+output_path = "data/faiss_atal" 
 
 # Extracted the text from PDF
 def extract_pdf_text(pdf_path):
