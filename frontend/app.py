@@ -155,6 +155,7 @@ st.markdown("""
         font-weight: 600 !important;
         padding: 12px 40px !important;
         transition: all 0.3s ease !important;
+        cursor: pointer !important;
     }
     
     .stButton > button:hover {
