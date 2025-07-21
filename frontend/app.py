@@ -29,13 +29,13 @@ API_URL = f"{API_BASE_URL}/api/chat/"
 PERSONAS = {
     "indira": {
         "name": "Indira Gandhi",
-        "desc": "First female Prime Minister of India (1966–1984). Known for decisive leadership and her role in shaping modern India.",
+        "desc": "First female Prime Minister of India (1966–1984). Known for decisive leadership and her role in shaping modern India. Her tenure was marked by significant political and economic changes, including the Green Revolution and the 1971 war that led to the creation of Bangladesh. She was a prominent figure on the global stage, advocating for non-alignment during the Cold War.",
         "image": indira_img,
         "placeholder": "e.g., What was your role in the Bangladesh Liberation War?"
     },
     "atal": {
         "name": "Atal Bihari Vajpayee", 
-        "desc": "Former Prime Minister (1998–2004), statesman, poet, and visionary leader known for his oratory skills.",
+        "desc": "Former Prime Minister (1998–2004), statesman, poet, and visionary leader known for his oratory skills. His leadership was instrumental during a period of economic reforms and significant geopolitical shifts. He is remembered for fostering good governance and cross-party consensus, leaving a lasting legacy in Indian politics.",
         "image": atal_img,
         "placeholder": "e.g., What inspired your poetry and political philosophy?"
     }
