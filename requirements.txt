@@ -14,6 +14,8 @@ sentence-transformers==2.5.1
 torch==2.2.2+cpu
 --extra-index-url https://download.pytorch.org/whl/cpu
 
+numpy<2.0.0,>=1.26.0 # THIS IS THE CRUCIAL LINE
+
 # PDF & Text Processing
 PyPDF2
 
