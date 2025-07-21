@@ -7,6 +7,13 @@ Currently, the application features **two personas**:
 
 ---
 
+# 🌐 Live Demo
+🔗 Try the app now: [web-production-d013b.up.railway.app](web-production-d013b.up.railway.app)
+
+The app is deployed on Railway and ready to use! Simply select a historical figure and start asking questions.
+
+---
+
 ## 🚀 Features
 - **Chat with Historical Figures:** Ask questions and get contextually accurate responses.
 - **Voice Responses:** AI-generated voices using **ElevenLabs TTS** for each persona.
