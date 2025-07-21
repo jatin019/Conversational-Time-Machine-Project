@@ -6,7 +6,7 @@ groq
 # LangChain & Retrieval
 langchain
 langchain-community
-faiss-cpu-noavx2
+faiss-cpu
 
 # Embeddings (force CPU-only Torch support)
 transformers==4.38.2
