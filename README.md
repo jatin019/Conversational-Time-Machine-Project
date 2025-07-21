@@ -37,7 +37,7 @@ The app is deployed on Railway and ready to use! Simply select a historical figu
 ## 📂 Project Structure
 ```yaml
 
-```
+
 .
 ├── backend/
 │   ├── data/
@@ -87,7 +87,7 @@ The app is deployed on Railway and ready to use! Simply select a historical figu
 ├── .gitignore
 ├── debug.py            # For debugging 
 └── debug2.py
-```
+
 ```
 
 ---
