@@ -36,20 +36,58 @@ The app is deployed on Railway and ready to use! Simply select a historical figu
 
 ## 📂 Project Structure
 ```yaml
+
+```
 .
-├── app.py # Streamlit frontend
-├── main.py # FastAPI backend entry point
-├── routes/
-│ └── conversation.py # Chat API routes
-├── services/
-│ ├── rag_service.py # RAG-based response generation
-│ └── tts_service.py # ElevenLabs TTS service
+├── backend/
+│   ├── data/
+│   │   ├── faiss_atal/
+│   │   │   ├── index.faiss
+│   │   │   └── index.pkl
+│   │   ├── faiss_indira/
+│   │   │   ├── index.faiss
+│   │   │   └── index.pkl
+│   │   ├── Atal_Bihari_Vajpayee.pdf
+│   │   ├── Indira_Gandhi.pdf
+│   │   ├── atal_g_quotes.txt
+│   │   ├── atal_g_speeches.txt
+│   │   ├── quotes.txt
+│   │   └── speeches.txt
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   └── conversation.py         # Chat API routes
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── prepare_embeddings.py
+│   │   ├── rag_service.py        # For RAG
+│   │   └── tts_service.py        # ElevenLabs TTS service
+│   ├── static/                   # Generated audio files
+│   │   ├── atal_39e36c77e34a45b0b3f463... (audio files)
+│   │   ├── atal_b871bb8165f74af0b7c1f7...
+│   │   ├── atal_e72c6c4e0db840d68bb25...
+│   │   ├── atal_response.mp3
+│   │   ├── indira_733a7532e05b46dcbcf9... (audio files)
+│   │   ├── indira_b45ee83ad9a7481f9afd...
+│   │   ├── indira_ca28fd99bf0543498475...
+│   │   ├── indira_d8342c1ba4fe44388699...
+│   │   └── indira_response.mp3
+│   ├── main.py                      # FastAPI backend entry point
+│   └── requirements.txt
+├── frontend/
+│   ├── assets/                       # Persona images
+│   ├── app.py
+│   └── requirements.txt
 ├── utils/
-│ ├── vector_store.py # FAISS vector loading
-│ └── prompt_templates.py # Persona prompts
-├── static/ # Generated audio files
-├── assets/ # Persona images
-└── README.md
+│   ├── prompt_templates.py 
+│   ├── vector_store.py           # FAISS vector loading
+│   └── audio_history.json
+├── Procfile
+├── README.md
+├── .gitattributes
+├── .gitignore
+├── debug.py            # For debugging 
+└── debug2.py
+```
 ```
 
 ---
