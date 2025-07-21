@@ -16,10 +16,8 @@ def get_persona_response(persona: str, question: str) -> str:
 
     system_prompt = get_persona_prompt(persona)
 
-    final_prompt = f"""
-{system_prompt}
-
-Context:
+    
+    user_prompt = f"""Context:
 {context}
 
 Question: {question}
@@ -30,14 +28,14 @@ Rules:
 - Keep the answer short and focused (maximum 60 words).
 - Avoid unnecessary details.
 - If asked about posthumous events (like Modi era or anything after your lifetime), reply exactly:
-"I'm afraid I cannot speak of the future I haven’t seen."
+"I'm afraid I cannot speak of the future I haven't seen."
 """
 
     response = client.chat.completions.create(
         model="llama3-70b-8192",
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": final_prompt}
+            {"role": "user", "content": user_prompt}
         ],
         temperature=0.7,
         max_tokens=500
