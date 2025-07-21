@@ -8,7 +8,7 @@ Currently, the application features **two personas**:
 ---
 
 # 🌐 Live Demo
-🔗 Try the app now: [web-production-d013b.up.railway.app](web-production-d013b.up.railway.app)
+🔗 Try the app now: [https://web-production-cedf.up.railway.app/](https://web-production-cedf.up.railway.app/)
 
 The app is deployed on Railway and ready to use! Simply select a historical figure and start asking questions.
 
