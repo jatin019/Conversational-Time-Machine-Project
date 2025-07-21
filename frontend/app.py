@@ -17,7 +17,7 @@ def get_base64_image(path: str) -> Optional[str]:
         st.warning(f"Image not found: {path}")
         return None
 
-# To load the images and convert to Base64 (make these optional)
+# To load the images and convert to Base64 
 indira_img = get_base64_image("assets/indira gandhi.jpg")
 atal_img = get_base64_image("assets/atal bihari vajpayee.jpeg")
 
@@ -47,7 +47,7 @@ if 'selected_persona' not in st.session_state:
 if 'conversation_history' not in st.session_state:
     st.session_state.conversation_history = []
 
-# Custom CSS for styling (same as before)
+# Custom CSS for styling 
 st.markdown("""
 <style>
     .stApp {
